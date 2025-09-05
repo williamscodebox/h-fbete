@@ -1,0 +1,277 @@
+import React, { useState, useEffect } from "react";
+import { Game, Player } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { 
+  Trophy, 
+  Calendar, 
+  Users, 
+  Crown, 
+  TrendingUp,
+  Clock,
+  Target,
+  Award
+} from "lucide-react";
+import { format } from "date-fns";
+
+export default function HistoryPage() {
+  const [games, setGames] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedGame, setSelectedGame] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [gamesData, playersData] = await Promise.all([
+        Game.list("-created_date"),
+        Player.list("-total_score")
+      ]);
+      setGames(gamesData);
+      setPlayers(playersData);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completedGames = games.filter(game => game.status === "completed");
+  const activeGames = games.filter(game => game.status === "active");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading game history...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Game History
+          </h1>
+          <p className="text-lg text-gray-600">
+            Track your Hand & Foot achievements and statistics
+          </p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-green-800 text-sm">Total Games</CardTitle>
+              <Trophy className="w-5 h-5 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-900">{games.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-blue-800 text-sm">Completed</CardTitle>
+              <Target className="w-5 h-5 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-900">{completedGames.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-orange-800 text-sm">Active Games</CardTitle>
+              <Clock className="w-5 h-5 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-900">{activeGames.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-purple-800 text-sm">Total Players</CardTitle>
+              <Users className="w-5 h-5 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-900">{players.length}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Games List */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Recent Games
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {games.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2">No Games Yet</h3>
+                    <p className="text-gray-500">Start your first Hand & Foot game to see history here!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {games.map((game) => (
+                      <div
+                        key={game.id}
+                        onClick={() => setSelectedGame(game)}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-lg">{game.name}</h3>
+                          <Badge 
+                            className={
+                              game.status === "completed" 
+                                ? "bg-green-100 text-green-800 border-green-300" 
+                                : "bg-orange-100 text-orange-800 border-orange-300"
+                            }
+                          >
+                            {game.status === "completed" ? "Completed" : "Active"}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-sm text-gray-600">
+                          <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {game.players.length} players
+                            </span>
+                            <span>Round {game.current_round}</span>
+                            <span>{format(new Date(game.created_date), "MMM d, yyyy")}</span>
+                          </div>
+                          
+                          {game.status === "completed" && game.winner_id && (
+                            <div className="flex items-center gap-1 text-yellow-600">
+                              <Crown className="w-4 h-4" />
+                              <span className="font-medium">
+                                {game.players.find(p => p.player_id === game.winner_id)?.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Player Leaderboard */}
+          <div>
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                  Player Leaderboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {players.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Award className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500">No players yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {players.slice(0, 10).map((player, index) => (
+                      <div key={player.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                            index === 1 ? 'bg-gray-100 text-gray-700' :
+                            index === 2 ? 'bg-orange-100 text-orange-800' :
+                            'bg-blue-50 text-blue-700'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="font-semibold">{player.name}</p>
+                            <div className="flex gap-2 text-xs text-gray-500">
+                              <span>{player.games_played || 0} games</span>
+                              <span>{player.games_won || 0} wins</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{player.total_score || 0}</p>
+                          <p className="text-xs text-gray-500">points</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Game Details Modal-like section */}
+            {selectedGame && (
+              <Card className="shadow-lg mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Game Details</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedGame(null)}
+                    >
+                      ✕
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">{selectedGame.name}</h4>
+                      <div className="text-sm text-gray-600">
+                        <p>Created: {format(new Date(selectedGame.created_date), "PPP")}</p>
+                        <p>Status: {selectedGame.status}</p>
+                        <p>Current Round: {selectedGame.current_round}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Final Scores</h4>
+                      <div className="space-y-2">
+                        {selectedGame.players
+                          .sort((a, b) => (b.total_score || 0) - (a.total_score || 0))
+                          .map((player, index) => (
+                            <div key={player.player_id} className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                {index === 0 && selectedGame.status === "completed" && (
+                                  <Crown className="w-4 h-4 text-yellow-500" />
+                                )}
+                                <span>{player.name}</span>
+                              </div>
+                              <span className="font-semibold">{player.total_score || 0}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
