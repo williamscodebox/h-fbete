@@ -1,0 +1,377 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  BookOpen, 
+  Users, 
+  Shuffle, 
+  Target, 
+  Trophy, 
+  ChevronLeft, 
+  ChevronRight,
+  Heart,
+  Diamond,
+  Club,
+  Spade
+} from "lucide-react";
+
+const tutorialSections = [
+  {
+    id: "overview",
+    title: "Game Overview",
+    icon: BookOpen,
+    content: (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-3">What is Hand and Foot?</h3>
+          <p className="text-gray-700 leading-relaxed">
+            Hand and Foot is a North American card game similar to Canasta. Players work to create melds (sets of cards) 
+            and earn points. The game is called "Hand and Foot" because each player is dealt two sets of cards: 
+            the "hand" (played first) and the "foot" (played after the hand is exhausted).
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="bg-green-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Players
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>2-6 players (best with 4)</p>
+              <p className="text-sm text-green-700 mt-2">Can be played in partnerships</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-red-50 border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-800 flex items-center gap-2">
+                <Shuffle className="w-5 h-5" />
+                Decks
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>4-7 standard decks + jokers</p>
+              <p className="text-sm text-red-700 mt-2">Number depends on player count</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: "setup",
+    title: "Game Setup",
+    icon: Shuffle,
+    content: (
+      <div className="space-y-6">
+        <div className="bg-blue-50 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-4">Initial Deal</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-blue-800 mb-2">Hand Cards</h4>
+              <p className="text-gray-700">Each player receives 11 cards face down. Keep these cards hidden from other players.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-blue-800 mb-2">Foot Cards</h4>
+              <p className="text-gray-700">Each player receives 11 additional cards face down. Don't look at these until your hand is empty!</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-4">
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-lg">Step 1</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Deal 11 cards to each player's hand</p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-lg">Step 2</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Deal 11 cards to each player's foot</p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-lg">Step 3</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Place remaining cards as stock pile</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: "melds",
+    title: "Making Melds",
+    icon: Target,
+    content: (
+      <div className="space-y-6">
+        <div className="bg-purple-50 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-3">What are Melds?</h3>
+          <p className="text-gray-700 mb-4">
+            Melds are sets of 3 or more cards of the same rank. You need melds to score points and eventually "go out" to win the round.
+          </p>
+        </div>
+
+        <div className="grid gap-4">
+          <Card className="border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800 flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                Clean Books (Natural Melds)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-2">7 or more cards of the same rank with NO wildcards</p>
+              <div className="flex gap-1 mb-2">
+                {[...Array(7)].map((_, i) => (
+                  <div key={i} className="w-8 h-12 bg-red-100 border border-red-300 rounded flex items-center justify-center text-xs">
+                    K♥
+                  </div>
+                ))}
+              </div>
+              <Badge className="bg-green-100 text-green-800">+500 points</Badge>
+            </CardContent>
+          </Card>
+
+          <Card className="border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-yellow-800 flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                Dirty Books (Mixed Melds)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-2">7 or more cards with wildcards (2s, Jokers)</p>
+              <div className="flex gap-1 mb-2">
+                {['K♥', 'K♠', '2♣', 'K♦', 'JKR', 'K♣', 'K♥'].map((card, i) => (
+                  <div key={i} className={`w-8 h-12 border rounded flex items-center justify-center text-xs ${
+                    card.includes('2') || card === 'JKR' ? 'bg-yellow-100 border-yellow-300' : 'bg-red-100 border-red-300'
+                  }`}>
+                    {card}
+                  </div>
+                ))}
+              </div>
+              <Badge className="bg-yellow-100 text-yellow-800">+300 points</Badge>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-semibold mb-2">Wildcard Rules</h4>
+          <ul className="space-y-1 text-sm text-gray-700">
+            <li>• 2s and Jokers are wildcards</li>
+            <li>• Maximum of 3 wildcards per meld</li>
+            <li>• Wildcards cannot outnumber natural cards</li>
+          </ul>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: "scoring",
+    title: "Scoring System",
+    icon: Trophy,
+    content: (
+      <div className="space-y-6">
+        <div className="bg-yellow-50 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-3">How Points Work</h3>
+          <p className="text-gray-700">
+            Points come from melds, individual cards, and bonuses. At the end of each round, subtract points for cards left in hand.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-green-700">Card Values</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between">
+                <span>Jokers</span>
+                <Badge>50 points</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>2s (wildcards)</span>
+                <Badge>20 points</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Aces</span>
+                <Badge>20 points</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>8, 9, 10, J, Q, K</span>
+                <Badge>10 points</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>4, 5, 6, 7</span>
+                <Badge>5 points</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Black 3s</span>
+                <Badge>5 points</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-blue-700">Bonuses</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between">
+                <span>Clean Book</span>
+                <Badge className="bg-green-100 text-green-800">+500</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Dirty Book</span>
+                <Badge className="bg-yellow-100 text-yellow-800">+300</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Going Out</span>
+                <Badge className="bg-purple-100 text-purple-800">+100</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span>Red 3s (each)</span>
+                <Badge className="bg-red-100 text-red-800">+100</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+          <h4 className="font-semibold text-red-800 mb-2">Penalty: Cards Left in Hand/Foot</h4>
+          <p className="text-red-700 text-sm">
+            At round end, subtract the point value of all cards remaining in your hand and foot from your score.
+          </p>
+        </div>
+      </div>
+    )
+  }
+];
+
+export default function TutorialPage() {
+  const [currentSection, setCurrentSection] = useState(0);
+
+  const nextSection = () => {
+    if (currentSection < tutorialSections.length - 1) {
+      setCurrentSection(currentSection + 1);
+    }
+  };
+
+  const prevSection = () => {
+    if (currentSection > 0) {
+      setCurrentSection(currentSection - 1);
+    }
+  };
+
+  const currentTutorial = tutorialSections[currentSection];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Learn Hand & Foot
+          </h1>
+          <p className="text-lg text-gray-600">
+            Master the classic card game with our interactive tutorial
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-gray-600">Progress</span>
+            <span className="text-sm text-gray-600">
+              {currentSection + 1} of {tutorialSections.length}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentSection + 1) / tutorialSections.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8 justify-center">
+          {tutorialSections.map((section, index) => (
+            <Button
+              key={section.id}
+              variant={index === currentSection ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCurrentSection(index)}
+              className={`flex items-center gap-2 ${
+                index === currentSection 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                  : 'hover:bg-blue-50'
+              }`}
+            >
+              <section.icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{section.title}</span>
+            </Button>
+          ))}
+        </div>
+
+        {/* Current Section Content */}
+        <Card className="shadow-xl mb-8">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <currentTutorial.icon className="w-6 h-6" />
+              {currentTutorial.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            {currentTutorial.content}
+          </CardContent>
+        </Card>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={prevSection}
+            disabled={currentSection === 0}
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+
+          <div className="flex gap-2">
+            {tutorialSections.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index === currentSection ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+
+          <Button
+            onClick={nextSection}
+            disabled={currentSection === tutorialSections.length - 1}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
